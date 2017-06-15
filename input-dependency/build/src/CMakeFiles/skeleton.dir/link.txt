@@ -1,0 +1,1 @@
+/usr/bin/c++  -fPIC  -DNDEBUG  -shared  -o ../lib/libskeleton.so CMakeFiles/skeleton.dir/InputDependencySkeleton.cpp.o  -L/usr/lib/llvm-3.9/lib  -L/usr/local/lib  -L/home/sip/sip-oblivious-hashing/input-dependency/build 
