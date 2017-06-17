@@ -30,10 +30,13 @@ COPY files/lib/ /usr/local/lib/
 RUN chown -R sip:sip .
 USER sip
 
-#
+# Build and run Skeleton pass example
 WORKDIR /home/sip/sip-oblivious-hashing/input-dependency
 RUN mkdir build
 WORKDIR  /home/sip/sip-oblivious-hashing/input-dependency/build
 RUN cmake ..
 RUN make
+RUN clang-3.9 -emit-llvm bubble_sort.cpp -c -o bubblebc.bc
+RUN opt-3.9 -load /usr/local/lib/libInputDependency.so -load build/lib/libskeleton.so bubblebc.bc -input-dep-skeleton -o bubble_out.bc
 #
+
