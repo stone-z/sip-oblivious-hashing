@@ -22,7 +22,7 @@ char ObliviousHashingSetupPass::ID = 0;
 void ObliviousHashingSetupPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 {
     AU.setPreservesAll();
-    AU.addRequired<input_dependency::InputDependencyAnalysis>();
+    // AU.addRequired<input_dependency::InputDependencyAnalysis>();
 }
 
 bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
