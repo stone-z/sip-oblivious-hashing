@@ -18,6 +18,8 @@
 using namespace llvm;
 using namespace std;
 
+static cl::opt<int> numHashVars("numHashVars", cl::desc("Number of distinct hash variables"), cl::Required);
+
 namespace {
 
 char ObliviousHashingSetupPass::ID = 0;
@@ -35,6 +37,7 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
     // Insert at least 2 different hash functions
 
     // Insert N hash variables
+    errs() << "Going to insert " << numHashVars << " hash variables." << '\n';
     // Are there existing globals?
     Module::GlobalListType& globals = M.getGlobalList();
     errs() << globals.size() << '\n';
@@ -43,11 +46,6 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
     LLVMContext& ctx = M.getContext();
     Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
     Value *global1 = M.getOrInsertGlobal("gHash1", intType);
-    // M.getOrInsertGlobal("gHash1", IntegerType::get(Type::getInt32Ty(ctx)), 0x99999);
-    
-    // GlobalVariable* global_hash1 = new GlobalVariable(M, PointerTy_0, false, GlobalValue::CommonLinkage, 0, "hash1");
-    // global_hash1.setAlignment(4);
-    // ConstantPointerNull* c_ptr_null = ConstantPointerNull::get(PointerTy_0);
 
     // global_hash1->setInitializer(c_ptr_null);
     Module::GlobalListType& globals2 = M.getGlobalList();
@@ -77,3 +75,11 @@ static llvm::RegisterStandardPasses RegisterMyPass(llvm::PassManagerBuilder::EP_
 
 }
 
+/*
+Garbage space
+    // M.getOrInsertGlobal("gHash1", IntegerType::get(Type::getInt32Ty(ctx)), 0x99999);    
+    // GlobalVariable* global_hash1 = new GlobalVariable(M, PointerTy_0, false, GlobalValue::CommonLinkage, 0, "hash1");
+    // global_hash1.setAlignment(4);
+    // ConstantPointerNull* c_ptr_null = ConstantPointerNull::get(PointerTy_0);
+
+*/
