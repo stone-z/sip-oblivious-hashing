@@ -8,9 +8,12 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Type.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/Debug.h"
+// #include "llvm/Support/TypeBuilder.h"
+#include "llvm/IR/TypeBuilder.h"
 
 using namespace llvm;
 using namespace std;
@@ -33,15 +36,22 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
 
     // Insert N hash variables
     // Are there existing globals?
-    // Module::GlobalListType& globals = M.getGlobalList();
-    // errs() << globals.size << '\n';
+    Module::GlobalListType& globals = M.getGlobalList();
+    errs() << globals.size() << '\n';
 
     // Try inserting one variable
+    LLVMContext& ctx = M.getContext();
+    Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
+    Value *global1 = M.getOrInsertGlobal("gHash1", intType);
+    // M.getOrInsertGlobal("gHash1", IntegerType::get(Type::getInt32Ty(ctx)), 0x99999);
+    
     // GlobalVariable* global_hash1 = new GlobalVariable(M, PointerTy_0, false, GlobalValue::CommonLinkage, 0, "hash1");
     // global_hash1.setAlignment(4);
     // ConstantPointerNull* c_ptr_null = ConstantPointerNull::get(PointerTy_0);
 
     // global_hash1->setInitializer(c_ptr_null);
+    Module::GlobalListType& globals2 = M.getGlobalList();
+    errs() << globals2.size() << '\n';
 
     // Insert assertions at random points in the program
     return false;
