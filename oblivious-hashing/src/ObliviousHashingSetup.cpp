@@ -1,7 +1,5 @@
 #include "ObliviousHashingSetup.h"
 
-// #include "input-dependency/InputDependencyAnalysis.h"
-
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
@@ -12,8 +10,9 @@
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Support/Debug.h"
-// #include "llvm/Support/TypeBuilder.h"
 #include "llvm/IR/TypeBuilder.h"
+
+#define PrintDebug
 
 using namespace llvm;
 using namespace std;
@@ -32,33 +31,44 @@ void ObliviousHashingSetupPass::getAnalysisUsage(llvm::AnalysisUsage& AU) const
 
 bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
 {
-    errs() << "Pass is running" << '\n';
+    dPrint("Pass is running");
     
     // Insert at least 2 different hash functions
 
-    // Insert N hash variables
-    errs() << "Going to insert " << numHashVars << " hash variables." << '\n';
-    // Are there existing globals?
-    Module::GlobalListType& globals = M.getGlobalList();
-    errs() << globals.size() << '\n';
 
-    // Try inserting one variable
-    LLVMContext& ctx = M.getContext();
-    Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
-    Value *global1 = M.getOrInsertGlobal("gHash1", intType);
-
-    // global_hash1->setInitializer(c_ptr_null);
-    Module::GlobalListType& globals2 = M.getGlobalList();
-    errs() << globals2.size() << '\n';
+    // Insert N hash variables - there appears to be a cap that LLVM enforces (12 for bubblesort)
+    insertHashFunctions(numHashVars, M);
 
     // Insert assertions at random points in the program
     return false;
 }
 
-void insertHashFunction(){
+// This will probably need to return a list of handles to the globals
+void ObliviousHashingSetupPass::insertHashFunctions(int numberOfVariables, llvm::Module& M){
+    dPrint("Going to insert " + std::to_string(numberOfVariables) + " hash variables.");
+    
+    // Are there existing globals? If not, this might fail
+    dPrint("Initial number of global variables:");
+    Module::GlobalListType& globals = M.getGlobalList();
+    errs() << globals.size() << '\n';
 
+    for(int i = 0; i < numberOfVariables; i++){
+        LLVMContext& ctx = M.getContext();
+        Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
+        string hashVarName = "gHash" + std::to_string(i);
+        Value *global = M.getOrInsertGlobal(hashVarName, intType);
+    }
+
+    dPrint("Final number of global variables:");
+    Module::GlobalListType& globals2 = M.getGlobalList();
+    errs() << globals2.size() << '\n';
 }
 
+void ObliviousHashingSetupPass::dPrint(string message){
+    #ifdef PrintDebug
+    errs() << message << '\n';
+    #endif
+}
 
 
 
@@ -81,5 +91,6 @@ Garbage space
     // GlobalVariable* global_hash1 = new GlobalVariable(M, PointerTy_0, false, GlobalValue::CommonLinkage, 0, "hash1");
     // global_hash1.setAlignment(4);
     // ConstantPointerNull* c_ptr_null = ConstantPointerNull::get(PointerTy_0);
+    // global_hash1->setInitializer(c_ptr_null);
 
 */
