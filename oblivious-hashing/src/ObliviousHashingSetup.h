@@ -16,7 +16,7 @@ public:
 
     bool runOnModule(llvm::Module& M) override;
     virtual void getAnalysisUsage(llvm::AnalysisUsage& AU) const override;
-    void insertHashFunctions(int numberOfVariables, llvm::Module& M);
+    void insertHashVariables(int numberOfVariables, llvm::Module& M);
     void dPrint(std::string message);
 };
 

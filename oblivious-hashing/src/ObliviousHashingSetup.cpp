@@ -37,14 +37,15 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
 
 
     // Insert N hash variables - there appears to be a cap that LLVM enforces (12 for bubblesort)
-    insertHashFunctions(numHashVars, M);
+    insertHashVariables(numHashVars, M);
 
     // Insert assertions at random points in the program
     return false;
 }
 
 // This will probably need to return a list of handles to the globals
-void ObliviousHashingSetupPass::insertHashFunctions(int numberOfVariables, llvm::Module& M){
+// Inserts an arbitrary number of global variables into the Module given
+void ObliviousHashingSetupPass::insertHashVariables(int numberOfVariables, llvm::Module& M){
     dPrint("Going to insert " + std::to_string(numberOfVariables) + " hash variables.");
     
     // Are there existing globals? If not, this might fail
@@ -55,8 +56,10 @@ void ObliviousHashingSetupPass::insertHashFunctions(int numberOfVariables, llvm:
     for(int i = 0; i < numberOfVariables; i++){
         LLVMContext& ctx = M.getContext();
         Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
+        // Could randomize/obscure the name to make it harder to find
         string hashVarName = "gHash" + std::to_string(i);
         Value *global = M.getOrInsertGlobal(hashVarName, intType);
+        // Add to a list to return?
     }
 
     dPrint("Final number of global variables:");
@@ -64,6 +67,7 @@ void ObliviousHashingSetupPass::insertHashFunctions(int numberOfVariables, llvm:
     errs() << globals2.size() << '\n';
 }
 
+// Print if the debug flag is set
 void ObliviousHashingSetupPass::dPrint(string message){
     #ifdef PrintDebug
     errs() << message << '\n';
