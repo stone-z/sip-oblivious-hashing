@@ -33,15 +33,15 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
 
     // Insert N hash variables
     // Are there existing globals?
-    GlobalListType& globals = M.getGlobalList();
-    errs() << globals.size << '\n';
+    // Module::GlobalListType& globals = M.getGlobalList();
+    // errs() << globals.size << '\n';
 
     // Try inserting one variable
-    GlobalVariable* global_hash1 = new GlobalVariable(M, PointerTy_0, false, GlobalValue::CommonLinkage, 0, "hash1");
-    global_hash1.setAlignment(4);
-    ConstantPointerNull* c_ptr_null = ConstantPointerNull::get(PointerTy_0);
+    // GlobalVariable* global_hash1 = new GlobalVariable(M, PointerTy_0, false, GlobalValue::CommonLinkage, 0, "hash1");
+    // global_hash1.setAlignment(4);
+    // ConstantPointerNull* c_ptr_null = ConstantPointerNull::get(PointerTy_0);
 
-    global_hash1->setInitializer(c_ptr_null);
+    // global_hash1->setInitializer(c_ptr_null);
 
     // Insert assertions at random points in the program
     return false;
