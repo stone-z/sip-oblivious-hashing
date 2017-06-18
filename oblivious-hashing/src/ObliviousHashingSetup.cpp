@@ -34,13 +34,25 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
     dPrint("Pass is running");
     
     // Insert at least 2 different hash functions
-
+    insertSumHashFunction(M);
+    insertSumOtherHashFunction(M);
 
     // Insert N hash variables - there appears to be a cap that LLVM enforces (12 for bubblesort)
     insertHashVariables(numHashVars, M);
 
     // Insert assertions at random points in the program
     return false;
+}
+
+void ObliviousHashingSetupPass::insertSumHashFunction(llvm::Module& M){
+    Function* f = M.getFunction("main");  // Just to test
+    LLVMContext& context = f->getContext();
+    Constant* simpleSumHash = f->getParent()->getOrInsertFunction("simpleSum",
+        Type::getVoidTy(context), Type::getInt32Ty(context), NULL);
+}
+
+void ObliviousHashingSetupPass::insertSumOtherHashFunction(llvm::Module& M){
+
 }
 
 // This will probably need to return a list of handles to the globals
