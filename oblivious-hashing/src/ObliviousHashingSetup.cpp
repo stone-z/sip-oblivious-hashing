@@ -3,6 +3,7 @@
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
+#include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/IR/InstrTypes.h"
@@ -49,6 +50,12 @@ void ObliviousHashingSetupPass::insertSumHashFunction(llvm::Module& M){
     LLVMContext& context = f->getContext();
     Constant* simpleSumHash = f->getParent()->getOrInsertFunction("simpleSum",
         Type::getVoidTy(context), Type::getInt32Ty(context), NULL);
+    // Function* fHash = cast<Function>(simpleSumHash);
+
+    // IRBuilder<> b(context);
+    // Instruction* i = f->getEntryBlock().getFirstNonPHI();
+    // b.SetInsertionPoint(i);
+    // b.CreateCall(fHash);
 }
 
 void ObliviousHashingSetupPass::insertSumOtherHashFunction(llvm::Module& M){
