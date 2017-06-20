@@ -1,1 +1,0 @@
-/usr/bin/c++  -fPIC  -DNDEBUG  -shared  -o ../lib/libOHTransformation.so CMakeFiles/OHTransformation.dir/ObliviousHashingTransformation.cpp.o  -L/usr/lib/llvm-3.9/lib  -L/usr/local/lib  -L/home/sip/sip-oblivious-hashing/oblivious-hashing-transformation/build 
