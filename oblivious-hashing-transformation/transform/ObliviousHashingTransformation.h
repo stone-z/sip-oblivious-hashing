@@ -7,7 +7,7 @@ class ObliviousHashingTransformationPass : public llvm::ModulePass {
         static char ID;
         ObliviousHashingTransformationPass(): llvm::ModulePass(ID) {}
         bool runOnModule(llvm::Module& M) override;
-     // virtual void getAnalysisUsage(llvm::AnalysisUsage& AU) const override;
+        virtual void getAnalysisUsage(llvm::AnalysisUsage& AU) const override;
 };
 
 }
