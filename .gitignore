@@ -1,0 +1,4 @@
+oblivious-hashing-transformation/build/*
+*.bc
+*.ll
+*.o
