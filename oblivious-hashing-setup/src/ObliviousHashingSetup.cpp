@@ -74,25 +74,31 @@ void ObliviousHashingSetupPass::insertSumOtherHashFunction(llvm::Module& M){
 // This will probably need to return a list of handles to the globals
 // Inserts an arbitrary number of global variables into the Module given
 void ObliviousHashingSetupPass::insertHashVariables(int numberOfVariables, llvm::Module& M){
-    dPrint("Going to insert " + std::to_string(numberOfVariables) + " hash variables.");
     
+    dPrint("Going to insert " + std::to_string(numberOfVariables) + " hash variables.");
     // Are there existing globals? If not, this might fail
     dPrint("Initial number of global variables:");
     Module::GlobalListType& globals = M.getGlobalList();
     errs() << globals.size() << '\n';
-
-    for(int i = 0; i < numberOfVariables; i++){
-        LLVMContext& ctx = M.getContext();
-        Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
-        // Could randomize/obscure the name to make it harder to find
-        string hashVarName = "gHash" + std::to_string(i);
-        Value *global = M.getOrInsertGlobal(hashVarName, intType);
-        // Add to a list to return?
+    
+    LLVMContext& ctx = M.getContext(); 
+    for(int i = 0; i < numberOfVariables; i++) { 
+       GlobalVariable* gvar = new GlobalVariable(M, Type::getInt32Ty(ctx), false, GlobalValue::CommonLinkage, ConstantInt::get(Type::getInt32Ty(ctx), 0), "gHash" + to_string(i));
     }
+
+    //for(int i = 0; i < numberOfVariables; i++) {
+    //    LLVMContext& ctx = M.getContext();
+    //    Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
+    //    // Could randomize/obscure the name to make it harder to find
+    //    string hashVarName = "gHash" + std::to_string(i);
+    //    Value *global = M.getOrInsertGlobal(hashVarName, intType);
+    //    // Add to a list to return?
+    //}
 
     dPrint("Final number of global variables:");
     Module::GlobalListType& globals2 = M.getGlobalList();
     errs() << globals2.size() << '\n';
+ 
 }
 
 // Print if the debug flag is set
