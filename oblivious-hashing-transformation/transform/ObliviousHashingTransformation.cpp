@@ -33,14 +33,15 @@ namespace {
 
       LLVMContext& ctx = M.getContext();
       IRBuilder<> builder(ctx);
-
+      int counter = 0;
+      int hash1counter = 0;
+      int hash2counter = 0;
+      Constant* fhash1 = M.getOrInsertFunction(hfParam[0], Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
+      Constant* fhash2 = M.getOrInsertFunction(hfParam[1], Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
       for(Function& f: M) {
          //errs() << "I am " << f.getName() << '\n';
          Function::BasicBlockListType& bbs = f.getBasicBlockList();
-         unsigned counter = 0;
          for(BasicBlock& bb: bbs) {
-            //errs() << "I am block " << counter << '\n';
-            counter++;
             for(Instruction& i: bb) {
                if(!input_dependency_info.isInputDependent(&i)) {
                   //errs() << "I am not input dependent" << '\n';
@@ -48,22 +49,50 @@ namespace {
                   const char* name = Instruction::getOpcodeName(i.getOpcode());
                   unsigned global;
                   unsigned hash_func;
-                  Constant* fhash1 = M.getOrInsertFunction(hfParam[0], Type::getVoidTy(ctx), /*Type::getInt32PtrTy(ctx),*/ Type::getInt32Ty(ctx), NULL);
-                  Constant* fhash2 = M.getOrInsertFunction(hfParam[1], Type::getVoidTy(ctx), /*Type::getInt32PtrTy(ctx),*/ Type::getInt32Ty(ctx), NULL);
                   if(isa<LoadInst>(i)) {
-                     errs() << "I am load\n";
+                     Value* load_arg = cast<LoadInst>(i).getOperand(0);
+                     if(load_arg->getType() == Type::getInt32PtrTy(ctx)) {
+                        counter++;
+                        errs() << "I am load\n";
+                        i.dump();
+                        global = rand() % numHashVars;
+                        hash_func = rand() % 2;
+                        errs() << "Let's use global " << global << " and function " << hash_func << '\n';
+                        Constant* gvar_ptr = M.getOrInsertGlobal("gHash" + to_string(global), Type::getInt32Ty(ctx));
+                        //GlobalVariable* gvar_ptr = M.getGlobalVariable("gHash" + to_string(global));
+                        Value* args_to_hash[] = {gvar_ptr, &i}; 
+                        builder.SetInsertPoint(i.getNextNode());
+                        if(hash_func == 0) {
+                           builder.CreateCall(fhash1, args_to_hash);
+                           hash1counter++;
+                        } else {
+                           builder.CreateCall(fhash2, args_to_hash);
+                           hash2counter++;
+                        }
+                     } 
+                  } else if(isa<StoreInst>(i)) {
+                     errs() << "I am store\n";
                      i.dump();
                      global = rand() % numHashVars;
                      hash_func = rand() % 2;
                      errs() << "Let's use global " << global << " and function " << hash_func << '\n';
-                     GlobalVariable* gvar_ptr = M.getNamedGlobal("gHash" + to_string(global));
-                     //Value* load_arg = cast<LoadInst>(i).getOperand(0);
-                     Value* args_to_hash[] = {/*gvar_ptr,*/ /*load_arg*/ &i}; 
-                     builder.SetInsertPoint(i.getNextNode());
-                     if(hash_func == 0) {
-                        builder.CreateCall(fhash1, args_to_hash);
-                     } else {
-                        builder.CreateCall(fhash2, args_to_hash);
+                     Constant* gvar_ptr = M.getOrInsertGlobal("gHash" + to_string(global), Type::getInt32Ty(ctx));
+                     Value* op1 = i.getOperand(0);
+                     if(op1->getType() == Type::getInt32Ty(ctx)) {
+                        errs() << "operand 1 ";
+                        op1->dump();
+                        Value* op2 = i.getOperand(1);
+                        errs() << "operand 2 ";
+                        op2->dump();
+                        Value* args_to_hash[] = {gvar_ptr, op1}; 
+                        builder.SetInsertPoint(i.getNextNode());
+                        if(hash_func == 0) {
+                           builder.CreateCall(fhash1, args_to_hash);
+                           hash1counter++;
+                        } else {
+                           builder.CreateCall(fhash2, args_to_hash);
+                           hash2counter++;
+                        }
                      }
                   }
                }
@@ -71,6 +100,9 @@ namespace {
             }
          }
       }
+      errs() << "Number of loads " << counter << '\n';
+      errs() << "Hash1 counter " << hash1counter << '\n';
+      errs() << "Hash2 counter " << hash2counter << '\n';
       return false;
    }
 
