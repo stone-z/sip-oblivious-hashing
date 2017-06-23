@@ -46,20 +46,29 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
 }
 
 void ObliviousHashingSetupPass::insertSumHashFunction(llvm::Module& M){
-    Function* f = M.getFunction("main");  // Just to test
-    LLVMContext& context = f->getContext();
-    Constant* simpleSumHash = f->getParent()->getOrInsertFunction("simpleSum",
-        Type::getVoidTy(context), Type::getInt32Ty(context), NULL);
-    // Function* fHash = cast<Function>(simpleSumHash);
-
-    // IRBuilder<> b(context);
-    // Instruction* i = f->getEntryBlock().getFirstNonPHI();
-    // b.SetInsertionPoint(i);
-    // b.CreateCall(fHash);
+   // Function* f = M.getFunction("main");  // Just to test
+     LLVMContext& context = M.getContext();
+     Constant* simpleSum = M.getOrInsertFunction("simpleSum", Type::getVoidTy(context), Type::getInt32PtrTy(context), Type::getInt32Ty(context), NULL);
+    
+     //IRBuilder<> b(context);
+     //Instruction* i = f->getEntryBlock().getFirstNonPHI();
+     //b.SetInsertPoint(i);
+     //ConstantInt* arg2 = ConstantInt::get(Type::getInt32Ty(context), 5);
+     //Value* args[] = {/*arg1,*/ arg2};
+     //b.CreateCall(simpleSum, args);
 }
 
 void ObliviousHashingSetupPass::insertSumOtherHashFunction(llvm::Module& M){
+     //Function* f = M.getFunction("main");  // Just to test
+     LLVMContext& context = M.getContext();
+     Constant* simpleSumthingElse = M.getOrInsertFunction("simpleSumthingElse", Type::getVoidTy(context), Type::getInt32PtrTy(context), Type::getInt32Ty(context), NULL);
 
+     //IRBuilder<> b(context);
+     //Instruction* i = f->getEntryBlock().getFirstNonPHI();
+     //b.SetInsertPoint(i);
+     //ConstantInt* arg2 = ConstantInt::get(Type::getInt32Ty(context), 5);
+     //Value* args[] = {/*arg1,*/ arg2};
+     //b.CreateCall(simpleSum, args);
 }
 
 // This will probably need to return a list of handles to the globals
