@@ -19,7 +19,9 @@ public:
     void insertHashVariables(int numberOfVariables, llvm::Module& M);
     void dPrint(std::string message);
     void insertSumHashFunction(llvm::Module& M);
-    void insertSumOtherHashFunction(llvm::Module& M);    
+    void insertSumOtherHashFunction(llvm::Module& M);
+    void insertRandomly(llvm::Module& M, int numberOfVariables);    
+    void insertAssertion(llvm::Module& M);
 };
 
 }

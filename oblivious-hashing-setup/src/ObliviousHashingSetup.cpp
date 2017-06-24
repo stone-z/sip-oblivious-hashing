@@ -42,33 +42,45 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
     insertHashVariables(numHashVars, M);
 
     // Insert assertions at random points in the program
+    insertAssertion(M);  // Add the assertEqual function to be called.
+    insertRandomly(M, numHashVars);
     return false;
+}
+
+void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, int numberOfVariables){
+    // Get number of basic blocks in program
+
+    // What should the probability be? N variables, 2 hash functions, B basic blocks, check
+    // every variable X times...? 
+
+    dPrint("insertRandomly()");
+    int blockCount = 0;
+    for(Function& f: M){
+        Function::BasicBlockListType& blocks = f.getBasicBlockList();
+        errs() << "Number of basic blocks in function: " << f.getName() << ": " << blocks.size() << '\n';
+        // for(BasicBlock& b: blocks){}
+        blockCount += blocks.size();
+    }
+
+    errs() << "Found " << std::to_string(blockCount) << " basic blocks." << '\n';
+
+}
+
+void ObliviousHashingSetupPass::insertAssertion(llvm::Module& M){
+    LLVMContext& context = M.getContext();
+    Constant* assert = M.getOrInsertFunction("assertEqual", Type::getVoidTy(context), Type::getInt32PtrTy(context), Type::getInt32Ty(context), NULL);
 }
 
 void ObliviousHashingSetupPass::insertSumHashFunction(llvm::Module& M){
    // Function* f = M.getFunction("main");  // Just to test
      LLVMContext& context = M.getContext();
      Constant* simpleSum = M.getOrInsertFunction("simpleSum", Type::getVoidTy(context), Type::getInt32PtrTy(context), Type::getInt32Ty(context), NULL);
-    
-     //IRBuilder<> b(context);
-     //Instruction* i = f->getEntryBlock().getFirstNonPHI();
-     //b.SetInsertPoint(i);
-     //ConstantInt* arg2 = ConstantInt::get(Type::getInt32Ty(context), 5);
-     //Value* args[] = {/*arg1,*/ arg2};
-     //b.CreateCall(simpleSum, args);
 }
 
 void ObliviousHashingSetupPass::insertSumOtherHashFunction(llvm::Module& M){
      //Function* f = M.getFunction("main");  // Just to test
      LLVMContext& context = M.getContext();
      Constant* simpleSumthingElse = M.getOrInsertFunction("simpleSumthingElse", Type::getVoidTy(context), Type::getInt32PtrTy(context), Type::getInt32Ty(context), NULL);
-
-     //IRBuilder<> b(context);
-     //Instruction* i = f->getEntryBlock().getFirstNonPHI();
-     //b.SetInsertPoint(i);
-     //ConstantInt* arg2 = ConstantInt::get(Type::getInt32Ty(context), 5);
-     //Value* args[] = {/*arg1,*/ arg2};
-     //b.CreateCall(simpleSum, args);
 }
 
 // This will probably need to return a list of handles to the globals
@@ -85,15 +97,6 @@ void ObliviousHashingSetupPass::insertHashVariables(int numberOfVariables, llvm:
     for(int i = 0; i < numberOfVariables; i++) { 
        GlobalVariable* gvar = new GlobalVariable(M, Type::getInt32Ty(ctx), false, GlobalValue::CommonLinkage, ConstantInt::get(Type::getInt32Ty(ctx), 0), "gHash" + to_string(i));
     }
-
-    //for(int i = 0; i < numberOfVariables; i++) {
-    //    LLVMContext& ctx = M.getContext();
-    //    Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
-    //    // Could randomize/obscure the name to make it harder to find
-    //    string hashVarName = "gHash" + std::to_string(i);
-    //    Value *global = M.getOrInsertGlobal(hashVarName, intType);
-    //    // Add to a list to return?
-    //}
 
     dPrint("Final number of global variables:");
     Module::GlobalListType& globals2 = M.getGlobalList();
@@ -130,5 +133,33 @@ Garbage space
     // global_hash1.setAlignment(4);
     // ConstantPointerNull* c_ptr_null = ConstantPointerNull::get(PointerTy_0);
     // global_hash1->setInitializer(c_ptr_null);
+
+
+        //for(int i = 0; i < numberOfVariables; i++) {
+    //    LLVMContext& ctx = M.getContext();
+    //    Type *intType = llvm::TypeBuilder<int, false>::get(ctx);
+    //    // Could randomize/obscure the name to make it harder to find
+    //    string hashVarName = "gHash" + std::to_string(i);
+    //    Value *global = M.getOrInsertGlobal(hashVarName, intType);
+    //    // Add to a list to return?
+    //}
+
+
+
+     //IRBuilder<> b(context);
+     //Instruction* i = f->getEntryBlock().getFirstNonPHI();
+     //b.SetInsertPoint(i);
+     //ConstantInt* arg2 = ConstantInt::get(Type::getInt32Ty(context), 5);
+     //Value* args[] = {/*arg1, arg2};
+     //b.CreateCall(simpleSum, args);
+
+     //IRBuilder<> b(context);
+     //Instruction* i = f->getEntryBlock().getFirstNonPHI();
+     //b.SetInsertPoint(i);
+     //ConstantInt* arg2 = ConstantInt::get(Type::getInt32Ty(context), 5);
+     //Value* args[] = {/*arg1, arg2};
+     //b.CreateCall(simpleSum, args);
+
+
 
 */
