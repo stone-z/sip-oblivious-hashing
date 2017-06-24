@@ -33,13 +33,9 @@ namespace {
 
       LLVMContext& ctx = M.getContext();
       IRBuilder<> builder(ctx);
-      int counter = 0;
-      int hash1counter = 0;
-      int hash2counter = 0;
       Constant* fhash1 = M.getOrInsertFunction(hfParam[0], Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
       Constant* fhash2 = M.getOrInsertFunction(hfParam[1], Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
       for(Function& f: M) {
-         //errs() << "I am " << f.getName() << '\n';
          Function::BasicBlockListType& bbs = f.getBasicBlockList();
          for(BasicBlock& bb: bbs) {
             for(Instruction& i: bb) {
@@ -50,7 +46,7 @@ namespace {
                   unsigned global;
                   unsigned hash_func;
                   if(isa<LoadInst>(i)) {
-                     Value* load_arg = cast<LoadInst>(i).getOperand(0);
+                     /*Value* load_arg = cast<LoadInst>(i).getOperand(0);
                      if(load_arg->getType() == Type::getInt32PtrTy(ctx)) {
                         counter++;
                         errs() << "I am load\n";
@@ -69,9 +65,9 @@ namespace {
                            builder.CreateCall(fhash2, args_to_hash);
                            hash2counter++;
                         }
-                     } 
+                     } */
                   } else if(isa<StoreInst>(i)) {
-                     errs() << "I am store\n";
+                     /*errs() << "I am store\n";
                      i.dump();
                      global = rand() % numHashVars;
                      hash_func = rand() % 2;
@@ -93,16 +89,49 @@ namespace {
                            builder.CreateCall(fhash2, args_to_hash);
                            hash2counter++;
                         }
-                     }
+                     }*/
+                  } else if(isa<BranchInst>(i)) {
+                       if(cast<BranchInst>(i).isConditional()) {
+                          errs() << "I am a branch\n";
+                          i.dump();
+                          global = rand() % numHashVars;
+                          hash_func = rand() % 2;
+                          errs() << "Let's use global " << global << " and function " << hash_func << '\n';
+                          Instruction* cond = cast<Instruction>(cast<BranchInst>(i).getCondition());
+                          CmpInst::Predicate pred = cast<ICmpInst>(*cond).getUnsignedPredicate();
+                          cond->dump();
+                          errs() << "Predicate " << pred << '\n';
+                          Value* op1 = cond->getOperand(0);
+                          op1->dump();
+                          Value* op2 = cond->getOperand(1);
+                          op2->dump();
+                          
+                          Constant* gvar_ptr = M.getOrInsertGlobal("gHash" + to_string(global), Type::getInt32Ty(ctx));
+                          Constant* predicate = ConstantInt::get(Type::getInt32Ty(ctx), pred);
+                          Value* args_to_hash[] = {gvar_ptr, predicate}; 
+                          builder.SetInsertPoint(&i);
+                          Constant* func; 
+                          if(hash_func == 0) {
+                             func = fhash1;
+                             builder.CreateCall(func, args_to_hash);
+                          } else {
+                             func = fhash2;
+                             builder.CreateCall(func, args_to_hash);
+                          }
+                          if(isa<LoadInst>(*op1)) {
+                             args_to_hash[1] = op1;
+                             builder.CreateCall(func, args_to_hash);
+                          }	
+                          if(isa<LoadInst>(*op2)) {
+                             args_to_hash[1] = op2;
+                             builder.CreateCall(func, args_to_hash);
+		          }
+                       }
                   }
                }
-               //errs() << "I am instruction\n";
             }
          }
       }
-      errs() << "Number of loads " << counter << '\n';
-      errs() << "Hash1 counter " << hash1counter << '\n';
-      errs() << "Hash2 counter " << hash2counter << '\n';
       return false;
    }
 
