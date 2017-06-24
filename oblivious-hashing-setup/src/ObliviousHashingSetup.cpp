@@ -67,6 +67,13 @@ void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, std::unordered_s
     }
 
     errs() << "Found " << std::to_string(blockCount) << " basic blocks." << '\n';
+    int listSize = listOfVariables.size();
+
+    double p = 1.0 - (1.0 * numberOfChecks * listSize / blockCount);
+    // errs() << "numChecks " << std::to_string(numberOfChecks) << '\n';
+    // errs() << "blockCount " << std::to_string(blockCount) << '\n';
+    // errs() << "listSize " << std::to_string(listSize) << '\n';
+    // errs() << "The magic number is " << p << '\n';
 
     // Maximum number of total checks = blockCount (i.e. every basic block does an assert)
     if(listOfVariables.size() <= blockCount){
@@ -77,6 +84,11 @@ void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, std::unordered_s
             Function::BasicBlockListType& blocks = f.getBasicBlockList();
             for(BasicBlock& b: blocks){
                 // errs() << "hashes size: " << listOfVariables.size() << '\n';
+                double result = 1.0 * rand() / RAND_MAX;
+                if(result < p){
+                    errs() << std::to_string(result);
+                    dPrint("- inserting assertion");
+                }
             }
         }
     } else {
