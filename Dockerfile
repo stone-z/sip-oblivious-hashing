@@ -54,6 +54,6 @@ RUN make
 WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-setup
 RUN clang-3.9 -emit-llvm bubble_sort.cpp -c -o bubblebc.bc
 RUN opt-3.9 -load /usr/local/lib/libInputDependency.so -load build/lib/libOHSetup.so bubblebc.bc -numHashVars 5 -oh-setup-pass -o bubble_out.bc
-WORKDIR  /home/sip/sip-oblivious-hashing-setup
+WORKDIR  /home/sip/sip-oblivious-hashing
 #
 

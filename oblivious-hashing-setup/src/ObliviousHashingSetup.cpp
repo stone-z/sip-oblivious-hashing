@@ -64,6 +64,15 @@ void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, int numberOfVari
 
     errs() << "Found " << std::to_string(blockCount) << " basic blocks." << '\n';
 
+    // Maximum number of total checks = blockCount (i.e. every basic block does an assert)
+    if(numberOfVariables <= blockCount){
+        dPrint("Adding assertions");
+    } else {
+        // This can't happen
+        errs() << "Too many hash variables for program size." << '\n';
+        exit(EXIT_FAILURE);
+    }
+
 }
 
 void ObliviousHashingSetupPass::insertAssertion(llvm::Module& M){
