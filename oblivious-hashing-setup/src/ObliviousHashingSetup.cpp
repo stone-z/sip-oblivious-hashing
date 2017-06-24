@@ -102,7 +102,13 @@ void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, std::unordered_s
                         Constant* fhash1 = M.getOrInsertFunction("simpleSum", Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
                         Constant* fhash2 = M.getOrInsertFunction("simpleSumthingElse", Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
                         Constant* gvar_ptr = M.getOrInsertGlobal(varVector.back(), Type::getInt32Ty(ctx));
+                  
+                        Instruction& i = b.front();
+                        builder.SetInsertPoint(&i);
 
+                        Constant* expectedHash = ConstantInt::get(Type::getInt32Ty(ctx), 0);
+                        Value* assertArgs[] = {gvar_ptr, expectedHash};
+                        builder.CreateCall("assertEqual", assertArgs);
                         varVector.pop_back();  // remove the global
                     }
                 }
