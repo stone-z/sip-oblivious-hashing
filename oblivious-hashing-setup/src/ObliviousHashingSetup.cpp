@@ -62,32 +62,49 @@ void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, std::unordered_s
     for(Function& f: M){
         Function::BasicBlockListType& blocks = f.getBasicBlockList();
         errs() << "Number of basic blocks in function: " << f.getName() << ": " << blocks.size() << '\n';
-        // for(BasicBlock& b: blocks){}
         blockCount += blocks.size();
     }
 
     errs() << "Found " << std::to_string(blockCount) << " basic blocks." << '\n';
     int listSize = listOfVariables.size();
 
+    // P(getsAssert) = X checks * N variables / B blocks
     double p = 1.0 - (1.0 * numberOfChecks * listSize / blockCount);
     // errs() << "numChecks " << std::to_string(numberOfChecks) << '\n';
     // errs() << "blockCount " << std::to_string(blockCount) << '\n';
     // errs() << "listSize " << std::to_string(listSize) << '\n';
     // errs() << "The magic number is " << p << '\n';
 
+    // Shuffle the order of the globals
+    // should change the return and parameter types to just be a vector. TODO
+    std::vector<string> varVector;
+    std::copy(listOfVariables.begin(), listOfVariables.end(), std::back_inserter(varVector));
+    std::random_shuffle(varVector.begin(), varVector.end());
+
     // Maximum number of total checks = blockCount (i.e. every basic block does an assert)
     if(listOfVariables.size() <= blockCount){
         dPrint("Adding assertions");
-        // P(hash1) = B / N - checks 
-        // P(getsAssert) = X checks * N variables / B blocks
+
         for(Function& f: M){
             Function::BasicBlockListType& blocks = f.getBasicBlockList();
             for(BasicBlock& b: blocks){
-                // errs() << "hashes size: " << listOfVariables.size() << '\n';
                 double result = 1.0 * rand() / RAND_MAX;
                 if(result < p){
-                    errs() << std::to_string(result);
-                    dPrint("- inserting assertion");
+
+                    // Would need to duplicate vector X times to check multiple times
+                    if(!varVector.empty()){
+                        errs() << std::to_string(result);
+                        dPrint("- inserting assertion");
+                        errs() << varVector.back() << '\n';
+
+                        LLVMContext& ctx = M.getContext();
+                        IRBuilder<> builder(ctx);
+                        Constant* fhash1 = M.getOrInsertFunction("simpleSum", Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
+                        Constant* fhash2 = M.getOrInsertFunction("simpleSumthingElse", Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
+                        Constant* gvar_ptr = M.getOrInsertGlobal(varVector.back(), Type::getInt32Ty(ctx));
+
+                        varVector.pop_back();  // remove the global
+                    }
                 }
             }
         }
