@@ -13,6 +13,9 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/IR/TypeBuilder.h"
 
+#include <iostream>
+#include <unordered_set>
+
 #define PrintDebug
 
 using namespace llvm;
@@ -39,22 +42,23 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
     insertSumOtherHashFunction(M);
 
     // Insert N hash variables - there appears to be a cap that LLVM enforces (12 for bubblesort)
-    insertHashVariables(numHashVars, M);
+    // insertHashVariables(numHashVars, M);
+    std::unordered_set<std::string> hashVars = insertHashVariables(numHashVars, M);
 
     // Insert assertions at random points in the program
     insertAssertion(M);  // Add the assertEqual function to be called.
-    insertRandomly(M, numHashVars);
+    // insertRandomly(M, numHashVars, 1);
+    insertRandomly(M, hashVars, 1);
     return false;
 }
 
-void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, int numberOfVariables){
-    // Get number of basic blocks in program
-
-    // What should the probability be? N variables, 2 hash functions, B basic blocks, check
-    // every variable X times...? 
+// void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, int numberOfVariables, int numberOfChecks){
+void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, std::unordered_set<std::string> listOfVariables, int numberOfChecks){
+    // What should the probability be? N variables, B basic blocks, check every variable X times...? 
 
     dPrint("insertRandomly()");
     int blockCount = 0;
+    // Get number of basic blocks in program
     for(Function& f: M){
         Function::BasicBlockListType& blocks = f.getBasicBlockList();
         errs() << "Number of basic blocks in function: " << f.getName() << ": " << blocks.size() << '\n';
@@ -65,10 +69,18 @@ void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, int numberOfVari
     errs() << "Found " << std::to_string(blockCount) << " basic blocks." << '\n';
 
     // Maximum number of total checks = blockCount (i.e. every basic block does an assert)
-    if(numberOfVariables <= blockCount){
+    if(listOfVariables.size() <= blockCount){
         dPrint("Adding assertions");
+        // P(hash1) = B / N - checks 
+        // P(getsAssert) = X checks * N variables / B blocks
+        for(Function& f: M){
+            Function::BasicBlockListType& blocks = f.getBasicBlockList();
+            for(BasicBlock& b: blocks){
+                // errs() << "hashes size: " << listOfVariables.size() << '\n';
+            }
+        }
     } else {
-        // This can't happen
+        // Can't instrument
         errs() << "Too many hash variables for program size." << '\n';
         exit(EXIT_FAILURE);
     }
@@ -94,7 +106,7 @@ void ObliviousHashingSetupPass::insertSumOtherHashFunction(llvm::Module& M){
 
 // This will probably need to return a list of handles to the globals
 // Inserts an arbitrary number of global variables into the Module given
-void ObliviousHashingSetupPass::insertHashVariables(int numberOfVariables, llvm::Module& M){
+std::unordered_set<std::string> ObliviousHashingSetupPass::insertHashVariables(int numberOfVariables, llvm::Module& M){
     
     dPrint("Going to insert " + std::to_string(numberOfVariables) + " hash variables.");
     // Are there existing globals? If not, this might fail
@@ -102,15 +114,20 @@ void ObliviousHashingSetupPass::insertHashVariables(int numberOfVariables, llvm:
     Module::GlobalListType& globals = M.getGlobalList();
     errs() << globals.size() << '\n';
     
+    std::unordered_set<std::string> names;
+
     LLVMContext& ctx = M.getContext(); 
     for(int i = 0; i < numberOfVariables; i++) { 
-       GlobalVariable* gvar = new GlobalVariable(M, Type::getInt32Ty(ctx), false, GlobalValue::CommonLinkage, ConstantInt::get(Type::getInt32Ty(ctx), 0), "gHash" + to_string(i));
+        std::string name = "gHash" + to_string(i);
+        GlobalVariable* gvar = new GlobalVariable(M, Type::getInt32Ty(ctx), false, GlobalValue::CommonLinkage, ConstantInt::get(Type::getInt32Ty(ctx), 0), name);
+        names.insert(name);
     }
 
     dPrint("Final number of global variables:");
     Module::GlobalListType& globals2 = M.getGlobalList();
     errs() << globals2.size() << '\n';
- 
+    
+    return names;
 }
 
 // Print if the debug flag is set
@@ -169,6 +186,26 @@ Garbage space
      //Value* args[] = {/*arg1, arg2};
      //b.CreateCall(simpleSum, args);
 
+// This will probably need to return a list of handles to the globals
+// Inserts an arbitrary number of global variables into the Module given
+void ObliviousHashingSetupPass::insertHashVariables(int numberOfVariables, llvm::Module& M){
+    
+    dPrint("Going to insert " + std::to_string(numberOfVariables) + " hash variables.");
+    // Are there existing globals? If not, this might fail
+    dPrint("Initial number of global variables:");
+    Module::GlobalListType& globals = M.getGlobalList();
+    errs() << globals.size() << '\n';
+    
+    LLVMContext& ctx = M.getContext(); 
+    for(int i = 0; i < numberOfVariables; i++) { 
+       GlobalVariable* gvar = new GlobalVariable(M, Type::getInt32Ty(ctx), false, GlobalValue::CommonLinkage, ConstantInt::get(Type::getInt32Ty(ctx), 0), "gHash" + to_string(i));
+    }
+
+    dPrint("Final number of global variables:");
+    Module::GlobalListType& globals2 = M.getGlobalList();
+    errs() << globals2.size() << '\n';
+ 
+}
 
 
 */
