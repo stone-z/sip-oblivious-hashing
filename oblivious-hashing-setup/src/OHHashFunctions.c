@@ -12,7 +12,7 @@ void simpleSumthingElse(int* var, int value){
 }
 
 int assertEqual(int* var, int value){
-    printf("Assert: Address: <%p> | Expect: <%d> | Current: <%d>", 
+    printf("Assert: Address: <%p> | Expect: <%d> | Current: <%d> \n", 
     var, value, *var);
     return 1;
 }

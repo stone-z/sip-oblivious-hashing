@@ -56,12 +56,12 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
 void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, std::unordered_set<std::string> listOfVariables, int numberOfChecks){
     // What should the probability be? N variables, B basic blocks, check every variable X times...? 
 
-    dPrint("insertRandomly()");
+    dPrint("Counting basic blocks.");
     int blockCount = 0;
     // Get number of basic blocks in program
     for(Function& f: M){
         Function::BasicBlockListType& blocks = f.getBasicBlockList();
-        errs() << "Number of basic blocks in function: " << f.getName() << ": " << blocks.size() << '\n';
+        // errs() << "Number of basic blocks in function: " << f.getName() << ": " << blocks.size() << '\n';
         blockCount += blocks.size();
     }
 
@@ -93,22 +93,25 @@ void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, std::unordered_s
 
                     // Would need to duplicate vector X times to check multiple times
                     if(!varVector.empty()){
-                        errs() << std::to_string(result);
-                        dPrint("- inserting assertion");
-                        errs() << varVector.back() << '\n';
+                        // errs() << std::to_string(result);  // Result of the probability calculation
+                        // dPrint("- inserting assertion");
+                        errs() << "  - Inserting: " << varVector.back() << '\n';
 
                         LLVMContext& ctx = M.getContext();
                         IRBuilder<> builder(ctx);                        
                   
+                        // Set insertion location
                         Instruction& i = b.front();
                         builder.SetInsertPoint(&i);
                         
+                        // Collect function and arguments
+                        Constant* assertion = M.getOrInsertFunction("assertEqual", Type::getInt32PtrTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
                         Constant* globalVar = M.getOrInsertGlobal(varVector.back(), Type::getInt32Ty(ctx));
                         Constant* expectedHash = ConstantInt::get(Type::getInt32Ty(ctx), 0);
                         Value* assertArgs[] = {globalVar, expectedHash};
                         
-                        // builder.CreateCall("assertEqual", assertArgs);
-                        // builder.CreateCall("assertEqual", assertArgs.begin(), assertArgs.end(), NULL);
+                        builder.CreateCall(assertion, assertArgs);  // Insert the call
+
                         varVector.pop_back();  // remove the global
                     }
                 }
