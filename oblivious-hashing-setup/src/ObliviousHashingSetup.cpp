@@ -41,18 +41,18 @@ bool ObliviousHashingSetupPass::runOnModule(llvm::Module& M)
     insertSumHashFunction(M);
     insertSumOtherHashFunction(M);
 
-    // Insert N hash variables - there appears to be a cap that LLVM enforces (12 for bubblesort)
-    // insertHashVariables(numHashVars, M);
+    // Insert N hash variables - there appears to be a cap that LLVM enforces (12 for bubblesort)    
     std::unordered_set<std::string> hashVars = insertHashVariables(numHashVars, M);
 
     // Insert assertions at random points in the program
     insertAssertion(M);  // Add the assertEqual function to be called.
-    // insertRandomly(M, numHashVars, 1);
     insertRandomly(M, hashVars, 1);
+
+    dPrint("End of setup pass.");
+
     return false;
 }
 
-// void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, int numberOfVariables, int numberOfChecks){
 void ObliviousHashingSetupPass::insertRandomly(llvm::Module& M, std::unordered_set<std::string> listOfVariables, int numberOfChecks){
     // What should the probability be? N variables, B basic blocks, check every variable X times...? 
 
@@ -130,14 +130,12 @@ void ObliviousHashingSetupPass::insertAssertion(llvm::Module& M){
     Constant* assert = M.getOrInsertFunction("assertEqual", Type::getVoidTy(context), Type::getInt32PtrTy(context), Type::getInt32Ty(context), NULL);
 }
 
-void ObliviousHashingSetupPass::insertSumHashFunction(llvm::Module& M){
-   // Function* f = M.getFunction("main");  // Just to test
+void ObliviousHashingSetupPass::insertSumHashFunction(llvm::Module& M){   
      LLVMContext& context = M.getContext();
      Constant* simpleSum = M.getOrInsertFunction("simpleSum", Type::getVoidTy(context), Type::getInt32PtrTy(context), Type::getInt32Ty(context), NULL);
 }
 
-void ObliviousHashingSetupPass::insertSumOtherHashFunction(llvm::Module& M){
-     //Function* f = M.getFunction("main");  // Just to test
+void ObliviousHashingSetupPass::insertSumOtherHashFunction(llvm::Module& M){     
      LLVMContext& context = M.getContext();
      Constant* simpleSumthingElse = M.getOrInsertFunction("simpleSumthingElse", Type::getVoidTy(context), Type::getInt32PtrTy(context), Type::getInt32Ty(context), NULL);
 }
