@@ -53,10 +53,10 @@ WORKDIR  /home/sip/sip-oblivious-hashing
 
 # Build OH inject Pass
 WORKDIR /home/sip/sip-oblivious-hashing/oblivious-hashing-inject
-# RUN mkdir build
+RUN mkdir build
 WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-inject/build
 RUN cmake ..
-# RUN make
+RUN make
 WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-inject
 WORKDIR  /home/sip/sip-oblivious-hashing
 #
