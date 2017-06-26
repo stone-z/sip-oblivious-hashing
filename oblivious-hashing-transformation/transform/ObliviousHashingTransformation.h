@@ -10,6 +10,7 @@ class ObliviousHashingTransformationPass : public llvm::ModulePass {
         ObliviousHashingTransformationPass(): llvm::ModulePass(ID) {}
         bool runOnModule(llvm::Module& M) override;
         void insertInstrumentation(llvm::Module& M, llvm::Instruction& i); 
+        void insertHashVariables(llvm::Module& M);
         virtual void getAnalysisUsage(llvm::AnalysisUsage& AU) const override;
 };
 

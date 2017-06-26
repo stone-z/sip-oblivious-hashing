@@ -31,7 +31,7 @@ namespace {
         
         unsigned global = rand() % numHashVars;
         unsigned hash_func = rand() % 2;
-        errs() << "Let's use global " << global << " and function " << hash_func << '\n';
+        errs() << "Let's use global " << global << " and function " << hash_func << ".\n";
         Constant* gvar_ptr = M.getOrInsertGlobal("gHash" + to_string(global), Type::getInt32Ty(ctx));
         Constant* func;
         if(hash_func == 0) {
@@ -41,14 +41,10 @@ namespace {
         }
         
         if(isa<LoadInst>(i) && (*(i.getOperand(0))).getType() == Type::getInt32PtrTy(ctx)) {
-           errs() << "I am load\n";
-           i.dump();
            builder.SetInsertPoint(i.getNextNode());
            Value* args_to_hash[] = {gvar_ptr, &i};  
            builder.CreateCall(func, args_to_hash);
         } else if(isa<StoreInst>(i) && (*(i.getOperand(0))).getType() == Type::getInt32Ty(ctx)) {
-           errs() << "I am store\n";
-           i.dump();
            Value* op = i.getOperand(0);
            Value* args_to_hash[] = {gvar_ptr, op}; 
            builder.SetInsertPoint(i.getNextNode());
@@ -56,12 +52,8 @@ namespace {
         } else if(isa<BranchInst>(i) && cast<BranchInst>(i).isConditional()) {
            Instruction* cond = cast<Instruction>(cast<BranchInst>(i).getCondition());
            CmpInst::Predicate pred = cast<ICmpInst>(*cond).getUnsignedPredicate();
-           cond->dump();
-           errs() << "Predicate " << pred << '\n';
            Value* op1 = cond->getOperand(0);
-           op1->dump();
            Value* op2 = cond->getOperand(1);
-           op2->dump();
            Constant* predicate = ConstantInt::get(Type::getInt32Ty(ctx), pred);
            Value* args_to_hash[] = {gvar_ptr, predicate}; 
            builder.SetInsertPoint(&i);
@@ -75,10 +67,6 @@ namespace {
               builder.CreateCall(func, args_to_hash);
            }
         } else if(i.isBinaryOp()) {
-             errs() << "I am binary\n";
-             i.dump();
-             i.getOperand(0)->dump();
-             i.getOperand(1)->dump();
              Value* op1 = i.getOperand(0);
              Value* op2 = i.getOperand(1);
              Value* args_to_hash[] = {gvar_ptr, op1}; 
@@ -89,6 +77,14 @@ namespace {
         }
    }
 
+   void ObliviousHashingTransformationPass::insertHashVariables(llvm::Module& M) {
+      LLVMContext& ctx = M.getContext();
+      for(int i = 0; i < numHashVars; i++) {
+        std::string name = "gHash" + to_string(i);
+        GlobalVariable* gvar = new GlobalVariable(M, Type::getInt32Ty(ctx), false, GlobalValue::CommonLinkage, ConstantInt::get(Type::getInt32Ty(ctx), 0), name); 
+      }
+   }
+
    bool ObliviousHashingTransformationPass::runOnModule(llvm::Module& M) {
       srand(time(NULL));
 
@@ -96,10 +92,8 @@ namespace {
       getAnalysisUsage(analysis);
       const auto& input_dependency_info = getAnalysis<input_dependency::InputDependencyAnalysis>();
 
-      LLVMContext& ctx = M.getContext();
-      IRBuilder<> builder(ctx);
-      Constant* fhash1 = M.getOrInsertFunction(hfParam[0], Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
-      Constant* fhash2 = M.getOrInsertFunction(hfParam[1], Type::getVoidTy(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
+      insertHashVariables(M);
+
       for(Function& f: M) {
          Function::BasicBlockListType& bbs = f.getBasicBlockList();
          for(BasicBlock& bb: bbs) {
