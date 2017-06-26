@@ -90,7 +90,7 @@ void ObliviousHashingInjectPass::insertRandomly(llvm::Module& M, int numberOfChe
                         // Collect function and arguments
                         Constant* assertion = M.getOrInsertFunction("assertEqual", Type::getInt32Ty(ctx), Type::getInt32PtrTy(ctx), Type::getInt32Ty(ctx), NULL);
                         Constant* globalVar = M.getOrInsertGlobal(varVector.back(), Type::getInt32Ty(ctx));
-                        Constant* expectedHash = ConstantInt::get(Type::getInt32Ty(ctx), 0);
+                        Constant* expectedHash = ConstantInt::get(Type::getInt32Ty(ctx), 0xdeadbeef);
                         Value* assertArgs[] = {globalVar, expectedHash};
                         
                         builder.CreateCall(assertion, assertArgs);  // Insert the call
