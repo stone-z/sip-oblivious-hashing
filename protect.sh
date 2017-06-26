@@ -24,28 +24,29 @@ fi
 
 echo
 
-# rm -rf *.bc *o *.out
+ rm -rf *.bc *o *.out
 
 echo
 
 # Compile hash snippets
-cc -c $projectRoot/oblivious-hashing-setup/src/OHHashFunctions.c
+cc -c $projectRoot/oblivious-hashing-inject/src/OHHashFunctions.c
 
 echo
 
-# 
+ 
 clang-3.9 -emit-llvm $source -c -o sourcebc.bc
 
 echo
-echo Running Setup Pass
-
-opt-3.9  -load $projectRoot/oblivious-hashing-setup/build/lib/libOHSetup.so sourcebc.bc -numHashVars $numHashVars -oh-setup-pass -o prepared.bc
 
 echo
-echo Running Transformation Pass
+echo Running Transform Pass
 
-opt-3.9 -load  /usr/local/lib/libInputDependency.so -load $projectRoot/oblivious-hashing-transformation/build/lib/libOHTransformation.so -oh-transform-pass -numHashVars $numHashVars -hf simpleSum -hf simpleSumthingElse prepared.bc > transformed.bc
+opt-3.9 -load  /usr/local/lib/libInputDependency.so -load $projectRoot/oblivious-hashing-transformation/build/lib/libOHTransformation.so -oh-transform-pass -numHashVars $numHashVars -hf simpleSum -hf simpleSumthingElse sourcebc.bc > prepared.bc
 
-#llc-3.9 -filetype=obj ./transformed.bc
+echo Running Inject Pass
 
-#cc transformed.o OHHashFunctions.o
+opt-3.9  -load $projectRoot/oblivious-hashing-inject/build/lib/libOHInject.so prepared.bc -numHashVars $numHashVars -oh-inject-pass -o transformed.bc
+
+llc-3.9 -filetype=obj ./transformed.bc
+
+cc transformed.o OHHashFunctions.o
