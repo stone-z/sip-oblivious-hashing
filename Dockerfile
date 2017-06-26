@@ -39,33 +39,25 @@ RUN mkdir build
 WORKDIR  /home/sip/sip-oblivious-hashing/input-dependency/build
 RUN cmake ..
 RUN make
-WORKDIR  /home/sip/sip-oblivious-hashing/input-dependency
-RUN clang-3.9 -emit-llvm bubble_sort.cpp -c -o bubblebc.bc
-RUN opt-3.9 -load /usr/local/lib/libInputDependency.so -load build/lib/libskeleton.so bubblebc.bc -input-dep-skeleton -o bubble_out.bc
 WORKDIR  /home/sip/sip-oblivious-hashing
 #
 
-# Build and run OH Setup Pass
-WORKDIR /home/sip/sip-oblivious-hashing/oblivious-hashing-setup
-RUN mkdir build
-WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-setup/build
-RUN cmake ..
-RUN make
-WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-setup
-RUN clang-3.9 -emit-llvm bubble_sort.cpp -c -o bubblebc.bc
-RUN opt-3.9 -load /usr/local/lib/libInputDependency.so -load build/lib/libOHSetup.so bubblebc.bc -numHashVars 5 -oh-setup-pass -o bubble_out.bc
-WORKDIR  /home/sip/sip-oblivious-hashing
-#
-
-# Build and run OH Transformation Pass
+# Build OH Transformation Pass
 WORKDIR /home/sip/sip-oblivious-hashing/oblivious-hashing-transformation
 RUN mkdir build
 WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-transformation/build
 RUN cmake ..
 RUN make
-# WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-transformation
-# RUN clang-3.9 -emit-llvm bubble_sort.cpp -c -o bubblebc.bc
-# RUN opt-3.9 -load /usr/local/lib/libInputDependency.so -load build/lib/libOHSetup.so bubblebc.bc -numHashVars 5 -oh-setup-pass -o bubble_out.bc
+WORKDIR  /home/sip/sip-oblivious-hashing
+#
+
+# Build OH inject Pass
+WORKDIR /home/sip/sip-oblivious-hashing/oblivious-hashing-inject
+# RUN mkdir build
+WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-inject/build
+RUN cmake ..
+# RUN make
+WORKDIR  /home/sip/sip-oblivious-hashing/oblivious-hashing-inject
 WORKDIR  /home/sip/sip-oblivious-hashing
 #
 
