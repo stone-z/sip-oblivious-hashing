@@ -11,7 +11,7 @@ void simpleSumthingElse(int* var, int value){
 }
 
 int assertEqual(int* var, int value){
-    printf("Assert: Address: <%p> | Expect: <%d> | Current: <%d> \n", 
+    printf("Assert: Address: <%p> | Expect: <%x> | Current: <%x> \n", 
     var, value, *var);
     if(value != *var) {
        printf("Program corrupted! Exiting!\n");
